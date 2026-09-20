@@ -1,0 +1,86 @@
+# Local development stack. No Azure subscription required.
+#
+# Fidelity, honestly stated (see docs/architecture.md §10):
+#   postgres   EXCELLENT  same engine; only the auth mechanism differs (password
+#                         locally, Entra token via Managed Identity in Azure).
+#   azurite    GOOD       blob CRUD and account-key SAS work. User-delegation SAS
+#                         and RBAC do NOT exist here — the security-critical path
+#                         is only exercised in Azure. Known, accepted gap.
+#   servicebus GOOD       queues, topics, subscriptions, filters, DLQ. No sessions
+#                         at scale, no auto-forward, no RBAC. Same Azure SDK though,
+#                         which is why it beats substituting RabbitMQ.
+#   dashboard  EXCELLENT  same OpenTelemetry instrumentation, different exporter.
+#   entra      NONE       there is no emulator. Use a free Entra tenant, or the
+#                         local symmetric-key issuer (Development only).
+#   apim       NONE       call services directly on 5001-5003. APIM policies are
+#                         validated in the Azure dev environment, not here.
+
+name: ecommerce
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: localdev
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Creates the three databases and three least-privilege roles, mirroring the
+      # Azure design: one server, three databases, no cross-database access.
+      - ./local/postgres-init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
+    ports:
+      - "10000:10000" # blob
+      - "10001:10001" # queue
+      - "10002:10002" # table
+    volumes:
+      - azurite:/data
+
+  # The Service Bus emulator stores its state in SQL Edge. This container is an
+  # implementation detail of the emulator, not part of our architecture.
+  servicebus-db:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "LocalDev!Passw0rd"
+    ports:
+      - "1433:1433"
+
+  servicebus:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    depends_on:
+      - servicebus-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "LocalDev!Passw0rd"
+      SQL_SERVER: servicebus-db
+    ports:
+      - "5672:5672"
+    volumes:
+      # Topology as code. Same entities the Bicep creates in Azure, so a handler
+      # that works locally is wired against the same topic/subscription names.
+      - ./local/servicebus-config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro
+
+  # Traces, metrics and logs locally — the same OTLP data Application Insights
+  # would receive in Azure. UI at http://localhost:18888
+  dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888" # UI
+      - "4317:18889"  # OTLP/gRPC — services export here
+
+volumes:
+  pgdata:
+  azurite:

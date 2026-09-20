@@ -1,0 +1,47 @@
+<Project>
+
+  <!--
+    Central Package Management: one version per package for the whole repo.
+    Projects use <PackageReference Include="X" /> with NO Version attribute.
+
+    Why: three services drifting onto three EF Core versions is a real and extremely
+    annoying failure mode, and it surfaces as a runtime binding error in the one
+    environment you cannot debug. One file, one answer.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!-- Azure SDK. Azure.Identity is the DefaultAzureCredential used everywhere:
+       az-login locally, Managed Identity in Azure, same code path. -->
+  <ItemGroup>
+    <PackageVersion Include="Azure.Identity" Version="1.21.0" />
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.6.0" />
+  </ItemGroup>
+
+  <!-- OpenTelemetry. Keep every OTel package on the same version — mixed versions
+       produce confusing "no exporter registered" symptoms rather than clean errors. -->
+  <ItemGroup>
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.19.0" />
+  </ItemGroup>
+
+  <!-- ASP.NET Core / platform -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
+  </ItemGroup>
+
+  <!-- Testing -->
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+</Project>

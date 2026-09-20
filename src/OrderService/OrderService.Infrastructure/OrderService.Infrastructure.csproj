@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\OrderService.Application\OrderService.Application.csproj" />
+    <ProjectReference Include="..\..\Shared\Ecommerce.Contracts\Ecommerce.Contracts.csproj" />
+  </ItemGroup>
+</Project>

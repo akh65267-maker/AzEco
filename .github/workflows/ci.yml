@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CI: "true"
+  DOTNET_NOLOGO: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Restore is a separate step so a dependency failure is distinguishable
+      # from a compile failure in the logs.
+      - run: dotnet restore
+
+      # Warnings are errors (Directory.Build.props). This step is the gate that
+      # keeps that promise honest.
+      - run: dotnet build --no-restore --configuration Release
+
+      - run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/
+
+  infra:
+    name: Bicep lint
+    runs-on: ubuntu-latest
+    # Phase 3 adds infra/main.bicep. Until then this job has nothing to do.
+    if: ${{ hashFiles('infra/main.bicep') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Bicep
+        run: az bicep build --file infra/main.bicep
+      # NOTE: `az deployment sub what-if` is the real gate, but it requires a
+      # subscription and a federated credential. Added when one exists.
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # "Don't commit secrets" as a policy has a 100% eventual failure rate.
+      # Enforce it mechanically instead.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

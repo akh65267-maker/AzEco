@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\CatalogService.Domain\CatalogService.Domain.csproj" />
+    <ProjectReference Include="..\..\Shared\Ecommerce.Contracts\Ecommerce.Contracts.csproj" />
+  </ItemGroup>
+</Project>

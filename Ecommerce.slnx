@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/CatalogService/">
+    <Project Path="src/CatalogService/CatalogService.Api/CatalogService.Api.csproj" />
+    <Project Path="src/CatalogService/CatalogService.Domain/CatalogService.Domain.csproj" />
+    <Project Path="src/CatalogService/CatalogService.Infrastructure/CatalogService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/OrderService/">
+    <Project Path="src/OrderService/OrderService.Api/OrderService.Api.csproj" />
+    <Project Path="src/OrderService/OrderService.Application/OrderService.Application.csproj" />
+    <Project Path="src/OrderService/OrderService.Domain/OrderService.Domain.csproj" />
+    <Project Path="src/OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/Ecommerce.Contracts/Ecommerce.Contracts.csproj" />
+    <Project Path="src/Shared/Ecommerce.ServiceDefaults/Ecommerce.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/UserService/">
+    <Project Path="src/UserService/UserService.Api/UserService.Api.csproj" />
+    <Project Path="src/UserService/UserService.Domain/UserService.Domain.csproj" />
+    <Project Path="src/UserService/UserService.Infrastructure/UserService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CatalogService.Tests/CatalogService.Tests.csproj" />
+    <Project Path="tests/OrderService.Tests/OrderService.Tests.csproj" />
+    <Project Path="tests/UserService.Tests/UserService.Tests.csproj" />
+  </Folder>
+</Solution>

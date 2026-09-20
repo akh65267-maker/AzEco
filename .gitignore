@@ -1,0 +1,35 @@
+## .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.user
+*.suo
+.vs/
+.idea/
+TestResults/
+*.trx
+*.coverage
+coverage/
+
+## Secrets — never commit. Enforced mechanically, not by policy.
+*.env
+.env.*
+appsettings.*.local.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+
+## Bicep parameter files that may carry real values.
+## dev.bicepparam / prod.bicepparam are committed ONLY because they contain
+## no secrets (see infra/README.md). Anything *.local.bicepparam is ignored.
+infra/parameters/*.local.bicepparam
+
+## Local infrastructure state
+.docker/
+azurite-data/
+pgdata/
