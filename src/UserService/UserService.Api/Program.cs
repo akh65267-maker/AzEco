@@ -1,19 +1,34 @@
 using Ecommerce.ServiceDefaults;
+using UserService.Api;
+using UserService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Observability, Entra authentication, health checks, HTTP resilience.
 builder.AddServiceDefaults();
 
+// PostgreSQL: local connection string, or Entra token via managed identity in Azure.
+builder.AddUserInfrastructure();
+
+// Injected rather than DateTimeOffset.UtcNow so time is controllable in tests.
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<CurrentUserProvider>();
+
+builder.Services.AddExceptionHandler<DomainExceptionHandler>();
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
 app.UseServiceDefaults();
 
-// Endpoints are added in the phase that implements this service.
-app.MapGet("/", () => Results.Ok(new { service = "UserService", status = "scaffolded" }))
-   .AllowAnonymous();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.MapUserEndpoints();
 
 app.Run();
 
-/// <summary>Exposed so integration tests can use WebApplicationFactory&lt;Program&gt;.</summary>
+// Exposed so integration tests can use WebApplicationFactory<Program>.
 public partial class Program;

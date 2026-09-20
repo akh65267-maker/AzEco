@@ -567,8 +567,8 @@ dev compute, and not splitting Postgres prematurely.
 | 1 | Architecture (this document) | ✅ |
 | 2 | Repo + solution, `ServiceDefaults`, docker-compose, CI | ✅ |
 | 3 | Bicep: identities, monitoring, Key Vault, Postgres, Storage, Service Bus, Container Apps. Compiles and lints; not deployed. | ✅ |
-| 4 | UserService: EF Core, Entra auth, JIT provisioning, tests | next |
-| 5 | CatalogService: products, images, Azurite SAS flow | |
+| 4 | UserService: EF Core, Entra auth, JIT provisioning, tests | ✅ |
+| 5 | CatalogService: products, images, Azurite SAS flow | next |
 | 6 | OrderService: state machine, outbox, SB publish, idempotent consumer, DLQ | |
 | 7 | APIM: Bicep + policies, rate limits, versioning | |
 | 8 | Observability hardening: message-path trace propagation, metrics, alerts | |

@@ -3,4 +3,7 @@
     <ProjectReference Include="..\UserService.Infrastructure\UserService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Shared\Ecommerce.ServiceDefaults\Ecommerce.ServiceDefaults.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
 </Project>

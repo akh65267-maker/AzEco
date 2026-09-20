@@ -1,5 +1,4 @@
 <Project>
-
   <!--
     Central Package Management: one version per package for the whole repo.
     Projects use <PackageReference Include="X" /> with NO Version attribute.
@@ -12,14 +11,27 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <!-- Azure SDK. Azure.Identity is the DefaultAzureCredential used everywhere:
        az-login locally, Managed Identity in Azure, same code path. -->
   <ItemGroup>
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.6.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
+    <!-- EF Core itself is pinned explicitly even though nothing references it directly.
+         Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3 depends on EF Core 10.0.4 while
+         Microsoft.EntityFrameworkCore.Design is on 10.0.12, and the two halves of the
+         build then compiled against different assembly versions (CS1705). Transitive
+         pinning only applies to packages listed here, so listing them is the fix. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
   </ItemGroup>
-
   <!-- OpenTelemetry. Keep every OTel package on the same version — mixed versions
        produce confusing "no exporter registered" symptoms rather than clean errors. -->
   <ItemGroup>
@@ -29,13 +41,11 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.19.0" />
   </ItemGroup>
-
   <!-- ASP.NET Core / platform -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
   </ItemGroup>
-
   <!-- Testing -->
   <ItemGroup>
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -43,5 +53,4 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
-
 </Project>

@@ -57,6 +57,33 @@ Then open the Aspire Dashboard at <http://localhost:18888> to see traces.
 Full setup, including authentication modes, is in
 [docs/local-development.md](docs/local-development.md).
 
+## UserService
+
+| Endpoint | Auth | Notes |
+|---|---|---|
+| `GET /me` | user scope | Creates the local row on first call (JIT provisioning) |
+| `PUT /me` | user scope | |
+| `GET/POST /me/addresses` | user scope | First address becomes both defaults |
+| `PUT/DELETE /me/addresses/{id}` | user scope | |
+| `DELETE /me` | user scope | Right to erasure — redacts, does not delete |
+| `GET /internal/users/{id}` | app **role** `Users.Read.All` | Service-to-service; not exposed through APIM |
+
+There is **no `/register`** and **no `/users/{id}` for end users**. Entra already
+performed the signup, so a registration endpoint would be a second source of truth about
+who exists. And an endpoint that takes a user id is an endpoint where someone eventually
+forgets the ownership check — if the id can only come from the token, that class of bug
+cannot be written.
+
+Migrations:
+
+```bash
+dotnet dotnet-ef migrations add <Name> --project src/UserService/UserService.Infrastructure --startup-project src/UserService/UserService.Infrastructure --output-dir Persistence/Migrations
+```
+
+They are **not** applied at startup. Schema changes are a deployment step, not a
+side effect of a container booting — otherwise three replicas racing to migrate is the
+first thing that happens on every scale-out.
+
 ## Conventions
 
 - **Warnings are errors** (`Directory.Build.props`). CI enforces it.
@@ -72,4 +99,4 @@ Full setup, including authentication modes, is in
 | 1 | Architecture | ✅ |
 | 2 | Repository, solution, ServiceDefaults, local stack, CI | ✅ |
 | 3 | Bicep infrastructure (compiles & lints; APIM deferred to Phase 7) | ✅ |
-| 4 | UserService | next |
+| 4 | UserService: domain, EF Core, Entra auth, JIT provisioning, tests | ✅ |

@@ -227,6 +227,14 @@ var commonEnv = [
     name: 'Postgres__Host'
     value: postgres.outputs.fullyQualifiedDomainName
   }
+  {
+    // The Bicep enables PgBouncer in transaction pooling mode, which hands a different
+    // backend connection to every transaction. Anything session-scoped therefore breaks
+    // — server-side prepared statements above all — so Npgsql must be told. Forgetting
+    // this produces 'prepared statement "_p1" already exists', but only under load.
+    name: 'Postgres__UseTransactionPooling'
+    value: 'true'
+  }
 ]
 
 // AZURE_CLIENT_ID tells DefaultAzureCredential WHICH user-assigned identity to use.
@@ -245,6 +253,13 @@ var userEnv = concat(commonEnv, [
     name: 'Postgres__Database'
     value: 'userdb'
   }
+  {
+    // The PostgreSQL role name IS the managed identity's resource name — that is how
+    // Azure maps a Postgres role to an Entra principal. A mismatch here fails the
+    // login with a generic authentication error that names nothing.
+    name: 'Postgres__Username'
+    value: identities.outputs.byService.user.name
+  }
 ])
 
 var catalogEnv = concat(commonEnv, [
@@ -255,6 +270,13 @@ var catalogEnv = concat(commonEnv, [
   {
     name: 'Postgres__Database'
     value: 'catalogdb'
+  }
+  {
+    // The PostgreSQL role name IS the managed identity's resource name — that is how
+    // Azure maps a Postgres role to an Entra principal. A mismatch here fails the
+    // login with a generic authentication error that names nothing.
+    name: 'Postgres__Username'
+    value: identities.outputs.byService.catalog.name
   }
   {
     name: 'Storage__BlobEndpoint'
@@ -286,6 +308,13 @@ var orderEnv = concat(commonEnv, [
   {
     name: 'Postgres__Database'
     value: 'orderdb'
+  }
+  {
+    // The PostgreSQL role name IS the managed identity's resource name — that is how
+    // Azure maps a Postgres role to an Entra principal. A mismatch here fails the
+    // login with a generic authentication error that names nothing.
+    name: 'Postgres__Username'
+    value: identities.outputs.byService.order.name
   }
   {
     name: 'ServiceBus__FullyQualifiedNamespace'
