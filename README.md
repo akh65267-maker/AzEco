@@ -71,5 +71,5 @@ Full setup, including authentication modes, is in
 |---|---|---|
 | 1 | Architecture | ✅ |
 | 2 | Repository, solution, ServiceDefaults, local stack, CI | ✅ |
-| 3 | Bicep infrastructure | next |
-| 4–10 | Services, APIM, observability hardening, deployment docs, CartService | |
+| 3 | Bicep infrastructure (compiles & lints; APIM deferred to Phase 7) | ✅ |
+| 4 | UserService | next |

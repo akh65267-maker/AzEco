@@ -42,16 +42,34 @@ jobs:
           path: TestResults/
 
   infra:
-    name: Bicep lint
+    name: Bicep build & lint
     runs-on: ubuntu-latest
-    # Phase 3 adds infra/main.bicep. Until then this job has nothing to do.
-    if: ${{ hashFiles('infra/main.bicep') != '' }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build Bicep
-        run: az bicep build --file infra/main.bicep
-      # NOTE: `az deployment sub what-if` is the real gate, but it requires a
-      # subscription and a federated credential. Added when one exists.
+
+      # azure-cli is preinstalled on ubuntu-latest runners.
+      - name: Install Bicep
+        run: az bicep install
+
+      - name: Build
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      # Lint separately so a style regression is distinguishable from a compile break.
+      - name: Lint
+        run: az bicep lint --file infra/main.bicep
+
+      # Parameter files can compile against a template they no longer match; this
+      # catches a renamed or removed parameter, which `build` alone does not.
+      - name: Build parameter files
+        run: |
+          for f in infra/parameters/*.bicepparam; do
+            az bicep build-params --file "$f" --stdout > /dev/null
+          done
+
+      # NOTE: `az deployment sub what-if` is the REAL gate — it is the only step that
+      # catches policy denials, quota limits, name collisions and unregistered resource
+      # providers. It needs a subscription and a federated credential, so it is added
+      # when one exists. Until then, "it compiles" is the only verified claim.
 
   secrets:
     name: Secret scan

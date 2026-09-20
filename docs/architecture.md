@@ -464,9 +464,8 @@ infra/
 │   ├── postgres.bicep        Flexible Server + 3 databases + Entra admin
 │   ├── storage.bicep         account + private container + RBAC + lifecycle rules
 │   ├── servicebus.bicep      namespace + topic + subscriptions + RBAC
-│   ├── apim.bicep            instance + APIs + products + policies
 │   ├── compute.bicep         Container Apps environment + 3 apps
-│   └── rbac.bicep            scoped role-assignment helper
+│   └── apim.bicep            (Phase 7) instance + APIs + products + policies
 └── parameters/{dev,prod}.bicepparam
 ```
 
@@ -476,6 +475,16 @@ infra/
 - Role assignments named with `guid(scope, principalId, roleDefinitionId)` for
   idempotency.
 - `az deployment sub what-if` as a PR gate once a subscription exists.
+- **No shared `rbac.bicep` helper.** A role assignment needs its target resource in
+  scope, so a generic module would have to re-fetch each resource with `existing` — more
+  indirection, and the scope of a grant becomes something you look up rather than read.
+  Each module creates its own assignments, next to the resource being granted.
+
+**Two things Bicep cannot express**, both documented in [infra/README.md](../infra/README.md):
+PostgreSQL roles and `GRANT`s (SQL, not ARM — run post-deploy as the Entra admin), and
+Entra app registrations (Microsoft Graph objects, not ARM resources). Pretending
+otherwise, e.g. by wrapping SQL in a `deploymentScript`, buys an ARM-shaped error message
+instead of a SQL-shaped one.
 
 **Compute choice: Azure Container Apps** — cheapest credible host for three containers,
 supports user-assigned MI, scale-to-zero in dev, and KEDA scaling on Service Bus queue
@@ -557,8 +566,8 @@ dev compute, and not splitting Postgres prematurely.
 |---|---|---|
 | 1 | Architecture (this document) | ✅ |
 | 2 | Repo + solution, `ServiceDefaults`, docker-compose, CI | ✅ |
-| 3 | Bicep skeleton (compiling only — no subscription to deploy to) | next |
-| 4 | UserService: EF Core, Entra auth, JIT provisioning, tests | |
+| 3 | Bicep: identities, monitoring, Key Vault, Postgres, Storage, Service Bus, Container Apps. Compiles and lints; not deployed. | ✅ |
+| 4 | UserService: EF Core, Entra auth, JIT provisioning, tests | next |
 | 5 | CatalogService: products, images, Azurite SAS flow | |
 | 6 | OrderService: state machine, outbox, SB publish, idempotent consumer, DLQ | |
 | 7 | APIM: Bicep + policies, rate limits, versioning | |
